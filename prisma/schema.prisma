@@ -1,0 +1,28 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+model Setting {
+    name  String  @id
+    value String
+}
+
+model Champion {
+    id    String @id
+    title String
+    lore  String
+    skins Skin[]
+}
+
+model Skin {
+    id         Int @id
+    number     Int
+    name       String
+    champion   Champion @relation(fields: [championId], references: [id])
+    championId String
+}

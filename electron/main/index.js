@@ -1,7 +1,8 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { release } from 'node:os';
 import { join } from 'node:path';
-import _ from "../api/index.js";
+import { checkForUpdate } from "./requests.js";
+import "./api.js";
 
 
 process.env.DIST_ELECTRON = join(__dirname, '..');
@@ -19,10 +20,7 @@ if (!app.requestSingleInstanceLock()) {
     process.exit(0);
 }
 
-// Remove electron security warnings
-// This warning only shows in development mode
-// Read more on https://www.electronjs.org/docs/latest/tutorial/security
-// process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
+checkForUpdate();
 
 let win = null
 // Here, you can also use other preload
@@ -40,7 +38,7 @@ async function createWindow() {
     if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
         win.loadURL(url)
         // Open devTool if the app is not packaged
-        win.webContents.openDevTools();
+        // win.webContents.openDevTools();
     }
     else {
         win.loadFile(indexHtml);

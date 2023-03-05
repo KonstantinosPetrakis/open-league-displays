@@ -13,6 +13,8 @@ dist-ssr
 dist-electron
 release
 *.local
+storage/*
+!storage/.gitkeep
 
 # Editor directories and files
 .vscode/.debug.env
