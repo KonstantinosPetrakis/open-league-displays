@@ -1,8 +1,8 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { release } from 'node:os';
 import { join } from 'node:path';
-import { checkForUpdate } from "./requests.js";
-import "./api.js";
+import { checkForUpdate, updateState } from "./requests.js";
+import { initialize } from "./api.js";
 
 
 process.env.DIST_ELECTRON = join(__dirname, '..');
@@ -20,7 +20,9 @@ if (!app.requestSingleInstanceLock()) {
     process.exit(0);
 }
 
+initialize({updateState}); 
 checkForUpdate();
+
 
 let win = null
 // Here, you can also use other preload
@@ -38,20 +40,15 @@ async function createWindow() {
     if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
         win.loadURL(url)
         // Open devTool if the app is not packaged
-        // win.webContents.openDevTools();
+        win.webContents.openDevTools();
     }
     else {
         win.loadFile(indexHtml);
     }
 
-    // Make all links open with the browser, not with the application
-    win.webContents.on('will-navigate', (event, url) => {
-        event.preventDefault();
-        shell.openExternal(url);
-    });
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
     win = null;

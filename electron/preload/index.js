@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+
 contextBridge.exposeInMainWorld('api', {
-    ping: () => ipcRenderer.invoke('ping')
+    getUpdateState: () => ipcRenderer.invoke('getUpdateState')
 });

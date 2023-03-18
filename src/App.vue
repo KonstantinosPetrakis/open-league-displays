@@ -1,13 +1,19 @@
 <script setup>
 import { ref } from 'vue';
-import counter from "./components/counter.vue";
+import { RouterLink, RouterView } from "vue-router";
 
-const msg = ref('Message from electron wasn\'t received yet');
-window.api.ping().then((message) => {msg.value = message;});
+
+// const msg = ref('Message from electron wasn\'t received yet');
+// window.api.getUpdateState().then((message) => {msg.value = message;});
 </script>
 
 <template>
-    <h1> Here is the counter: </h1>
-    <p> Here is the message from electron: {{ msg }} </p>
-    <counter> </counter>
+    
+    <router-link to="/">Home</router-link>
+    <router-link to="/settings">Settings</router-link>
+    <router-link to="/information">Information</router-link>
+    <router-link to="/champions">Champions</router-link>
+    <router-link to="/settings">Settings</router-link>
+
+    <router-view> </router-view>
 </template>

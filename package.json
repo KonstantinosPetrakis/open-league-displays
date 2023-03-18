@@ -38,6 +38,10 @@
     "dependencies": {
         "@prisma/client": "^4.11.0",
         "node-fetch": "^2.6.9",
-        "sqlite3": "^5.1.4"
+        "sqlite3": "^5.1.4",
+        "vue-router": "^4.1.6"
+    },
+    "prisma": {
+        "schema": "storage/schema.prisma"
     }
 }

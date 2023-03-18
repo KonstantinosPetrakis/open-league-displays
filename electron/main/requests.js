@@ -1,11 +1,23 @@
-import { PrismaClient } from '@prisma/client'
+/**
+ * This module handles the update process by making requests to the Riot API.
+ */
+
+
+import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
+import { dirname } from 'path';
 import fs from 'fs';
 
 
 const prisma = new PrismaClient();
-export var checkedForUpdate = false;
-export var updating = false;
+
+export var updateState = {
+    checkedForUpdate: false,
+    updating: false,
+    currentIterations: 0,
+    totalIterations: 0,
+    updateProgress() { return (this.currentIterations / this.totalIterations) * 100 }
+}
 
 
 /**
@@ -15,12 +27,12 @@ export async function checkForUpdate() {
     const storedVersion = await prisma.setting.findUnique({select: {value: true}, where: {name: "version"}});
     var version = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
     version = (await version.json())[0];
-    checkedForUpdate = true;
+    updateState.checkedForUpdate = true;
     if (storedVersion != version || true) {
-        updating = true;
+        updateState.updating = true;
         prisma.setting.upsert({where: {name: "version"}, create: {name: "version", value: version}, update: {value: version}});
         await update(version);
-        updating = false;
+        updateState.updating = false;
     }    
 }
 
@@ -32,12 +44,13 @@ export async function checkForUpdate() {
 async function update(version) {
     var champions = await fetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`); 
     champions = Object.values((await champions.json()).data);
-     
+    updateState.totalIterations = champions.length;
+    
     for (let i=0; i<champions.length; i++) {
         champions[i] = updateChampion(version, champions[i]);
         break;
-    }
-    
+    }   
+
     await Promise.all(champions);
 }
 
@@ -45,54 +58,52 @@ async function update(version) {
 /**
  * This function updates the database and assets for a specific champion.
  * @param {string} version the current version of the game.
- * @param {object} champion the champion to update/store.
+ * @param {object} champion the champion to update/store as returned by the Riot API.
+ * @returns {object} the updated champion as stored in the database.
  */
 async function updateChampion(version, champion) {
-    champion = await prisma.champion.upsert({where: {id: champion.id}, create: {id: champion.id, name: champion.name, title: champion.title, lore: champion.lore}});
+    var championId = champion.id;
+    champion = await fetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${champion.id}.json`); 
+    champion = (await champion.json()).data[championId];
+    var championForDb = {id: championId, title: champion.title, lore: champion.lore};
+    await prisma.champion.upsert({where: {id: championId}, create: championForDb, update: championForDb});
     
     var storedSkins = await prisma.skin.findMany({select: {number: true}, where: {championId: champion.id}});
-    var skins = await fetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${champion.id}.json`);
-    skins = (await skins.json()).data[champion.name].skins;
-    skins = skins.filter(skin => !storedSkins.includes(skin.num));
-    
-    for (let i=0; i<skins.length; i++) {
-        skins[i] = updateSkin(version, champion, skins[i]);
-        break;
-    }
+    storedSkins = storedSkins.map(skin => skin.number);
+    var skins = champion.skins.filter(skin => !storedSkins.includes(skin.num));
 
+    for (let i=0; i<skins.length; i++) skins[i] = updateSkin(champion, skins[i]);
+    
+    var loadingScreenSplashArt = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`);
+    saveImage(loadingScreenSplashArt.body, `storage/images/loading-screen/${champion.id}.jpg`); 
+    
     await Promise.all(skins);
+
+    updateState.currentIterations++;
     return champion;
 }
 
 /**
  * This function updates the database and assets for a specific skin.
- * @param {string} version the current version of the game.
  * @param {object} champion the champion the skin belongs to.
- * @param {object} skin the skin to update/store.
+ * @param {object} skin the skin to update/store as returned by the Riot API.
+ * @returns {object} the updated skin as stored in the database.
  */
-async function updateSkin(version, champion, skin) {
-    skin = await prisma.skin.upsert({where: {id: skin.id}, create: {id: skin.id, number: skin.num, name: skin.name, championId: champion.id}});
-    var skinSplash = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_${skin.num}.jpg`);
-    // save image here
+async function updateSkin(champion, skin) {
+    skin = {id: +skin.id, number: skin.num, name: skin.name, championId: champion.id};
+    skin = await prisma.skin.upsert({where: {id: skin.id}, create: skin, update: skin});
+    var skinSplash = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_${skin.number}.jpg`);
+    saveImage(skinSplash.body, `storage/images/thumbnails/${champion.id}/${skin.number}.jpg`);
     return skin;
 }
 
 /**
  * This function saves an image to a file.
- * @param {ReadableStream} image the image to save
- * @param {string} filePath the file path to save the image to.
+ * @param {ReadableStream} image the image to save.
+ * @param {string} filePath the file path to save the image to (including the file name).
  */
 async function saveImage(image, filePath) {
-    const dirname = path.dirname(filePath);
-    if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });    
+    const directoryName = dirname(filePath);
+    if (!fs.existsSync(directoryName)) fs.mkdirSync(directoryName, { recursive: true });    
     image.pipe(fs.createWriteStream(filePath));
 }
-
-// I gotta make sure that the storage folder is on project root directory and not inside prisma.
-// The directory will be like this:
-// project root
-// - storage
-// - - database.db
-// - - images
-// - - - high-res
-// - - - thumbnails
