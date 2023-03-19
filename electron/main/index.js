@@ -35,6 +35,7 @@ async function createWindow() {
         title: 'Open League Displays',
         icon: join(process.env.PUBLIC, 'favicon.ico'),
         webPreferences: {preload},
+        autoHideMenuBar: true,
     });
 
     if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298

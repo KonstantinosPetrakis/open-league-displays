@@ -1,0 +1,50 @@
+* {
+    box-sizing: border-box;
+    /* Not selectable */
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Load fonts */
+
+/* Header - Display font */
+@font-face {
+    font-family: "beaufort"; 
+         /* bold */
+    src: url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-Bold.ttf") format("truetype") font-weight-bold,
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-BoldItalic.ttf") format("truetype") font-weight-bold font-style-italic
+         /* heavy */
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-Heavy.ttf") format("truetype") font-weight-900,
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-HeavyItalic.ttf") format("truetype") font-weight-900 font-style-italic
+        /* light */
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-Light.ttf") format("truetype") font-weight-300,
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-LightItalic.ttf") format("truetype") font-weight-300 font-style-italic
+        /* medium */
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-Medium.ttf") format("truetype") font-weight-500,
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-MediumItalic.ttf") format("truetype") font-weight-500 font-style-italic
+        /* regular */
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-Regular.ttf") format("truetype"),
+         url("../fonts/BeaufortForLoL-TTF/BeaufortforLOL-RegularItalic.ttf") format("truetype") font-style-italic;
+}
+
+/* Body - Text font */
+@font-face {
+    font-family: "spiegel";
+         /* bold */
+    src: url("../fonts/Spiegel-TTF/Spiegel_TT_Bold.ttf") format("truetype") font-weight-bold,
+         url("../fonts/Spiegel-TTF/Spiegel_TT_BoldItalic.ttf") format("truetype") font-weight-bold font-style-italic
+         /* semi-bold */
+         url("../fonts/Spiegel-TTF/Spiegel_TT_SemiBold.ttf") format("truetype") font-weight-600,
+         url("../fonts/Spiegel-TTF/Spiegel_TT_SemiBoldItalic.ttf") format("truetype") font-weight-600 font-style-italic
+        /* regular */
+         url("../fonts/Spiegel-TTF/Spiegel_TT_Regular.ttf") format("truetype"),
+         url("../fonts/Spiegel-TTF/Spiegel_TT_RegularItalic.ttf") format("truetype") font-style-italic;
+}

@@ -1,19 +1,31 @@
 <script setup>
 import { ref } from 'vue';
-import { RouterLink, RouterView } from "vue-router";
-
-
-// const msg = ref('Message from electron wasn\'t received yet');
-// window.api.getUpdateState().then((message) => {msg.value = message;});
+import { RouterView } from "vue-router";
+import NavBar from './components/NavBar.vue';
+import Footer from './components/Footer.vue';
 </script>
 
-<template>
-    
-    <router-link to="/">Home</router-link>
-    <router-link to="/settings">Settings</router-link>
-    <router-link to="/information">Information</router-link>
-    <router-link to="/champions">Champions</router-link>
-    <router-link to="/settings">Settings</router-link>
+<style scoped>
+    #main-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    main {
+        margin-bottom: auto;
+    }
+</style>
 
-    <router-view> </router-view>
+<template>
+    <div id="main-container">
+        <nav>
+            <nav-bar> </nav-bar>
+        </nav>
+        <main>
+            <router-view> </router-view>
+        </main>
+        <footer>
+            <Footer> </Footer>
+        </footer>
+    </div>
 </template>

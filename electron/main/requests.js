@@ -4,7 +4,9 @@
 
 
 import { PrismaClient } from '@prisma/client';
-import fetch from 'node-fetch';
+// import fetch from 'node-fetch';
+var fetch = () => {console.log("fetch")}
+
 import { dirname } from 'path';
 import fs from 'fs';
 
