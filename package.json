@@ -1,6 +1,6 @@
 {
     "name": "open-league-displays",
-    "version": "2.0.0",
+    "version": "0.0.1",
     "main": "dist-electron/main/index.js",
     "description": "An open-source cross-platform league displays",
     "author": "Konstantinos Petrakis",
@@ -20,7 +20,7 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "vue-tsc --noEmit && vite build && electron-builder",
+        "build": "vite build && electron-builder",
         "preview": "vite preview"
     },
     "devDependencies": {
@@ -43,5 +43,23 @@
     },
     "prisma": {
         "schema": "storage/schema.prisma"
+    },
+    "build": {
+        "win": {
+            "icon": "./public/favicon.ico"
+        },
+        "mac": {
+            "icon": "./public/favicon.ico",
+            "category": "public.app-category.utilities"
+        },
+        "files": [
+            "dist/**/*",
+            "dist-electron/**/*"
+        ],
+        "extraResources": [
+            "storage/**/*",
+            "node_modules/.prisma/**/*",
+            "node_modules/@prisma/client/**/*"
+        ]
     }
 }
