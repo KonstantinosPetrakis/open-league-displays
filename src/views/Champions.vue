@@ -1,6 +1,43 @@
+<script setup>
+import { ref } from "vue";
+import ChampionPreview from "../components/ChampionPreview.vue";
+
+const champions = ref();
+
+window.api.getChampions().then(champs => champions.value = champs);
+
+</script>
+
+<style scoped>
+    #champions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+</style>
+
 <template>
     <h1> Champions </h1>
     <p>
-        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Autem rem reprehenderit, inventore totam doloribus expedita! Quasi, soluta? Obcaecati unde nesciunt voluptas tempora ipsa! Beatae aspernatur perspiciatis natus! Unde doloremque delectus ut commodi necessitatibus possimus dolorem excepturi est? Suscipit, fugit a! Repellendus accusamus harum ea deleniti similique fugit, repudiandae inventore libero velit adipisci expedita cumque alias doloribus culpa at! Doloremque cum rerum sunt quibusdam aut similique rem ducimus, repudiandae voluptatibus autem, eaque voluptates eius. Laborum incidunt soluta fuga est asperiores. Debitis, id aspernatur voluptatem vitae libero ipsam dolorum, quaerat labore nobis officiis reprehenderit perferendis ipsa dolore nisi blanditiis tempora ratione velit impedit dolores consequuntur. Exercitationem, esse earum. Magnam ab eius natus ipsum dolore quibusdam illo facilis vitae sed accusamus harum, quaerat veniam aspernatur quia distinctio. Distinctio illo laudantium iusto inventore quod placeat et porro soluta eum amet iste commodi nemo, molestias eaque architecto, quia quo vitae ipsum adipisci nihil reiciendis. Sit illo delectus culpa dolor nihil illum, incidunt, reprehenderit, praesentium adipisci quia rerum aliquid autem unde impedit cupiditate voluptatum ipsam quaerat consequuntur ea. Iste, voluptas officia accusamus eaque impedit labore error omnis ratione quam nesciunt nisi dignissimos nostrum repudiandae placeat. Quia cum nostrum dolorum in a nam vel aliquid itaque deserunt.
+        Todo: 
+        <ul>
+            <li> 
+                Fix the names of the characters, add an extra column 'name' instead of id in key
+                column of the database.
+            </li>
+            <li>
+                Add a search bar to filter the champions by name.
+            </li>
+            <li>
+                ...
+            </li>
+        </ul>
     </p>
+    <div id="champions">
+        <champion-preview v-for="champion of champions" :key="champion.id" :champion="champion"/>
+    </div>
 </template>

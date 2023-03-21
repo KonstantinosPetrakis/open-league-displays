@@ -20,10 +20,6 @@ if (!app.requestSingleInstanceLock()) {
     process.exit(0);
 }
 
-initialize({updateState}); 
-checkForUpdate();
-
-
 let win = null
 // Here, you can also use other preload
 const preload = join(__dirname, '../preload/index.js');
@@ -49,9 +45,11 @@ async function createWindow() {
 
 }
 
+initialize({updateState}); 
 app.whenReady().then(createWindow);
+// checkForUpdate();
 
 app.on('window-all-closed', () => {
     win = null;
-    if (process.platform !== 'darwin') app.quit();
+    app.quit();
 });

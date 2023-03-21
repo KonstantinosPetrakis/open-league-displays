@@ -1,20 +1,25 @@
 import { ipcMain } from 'electron';
+import { PrismaClient } from "@prisma/client";
 
-
-// Globals
+// Initizalization and global variables
+const prisma = new PrismaClient();
 var updateState;
 
 export function initialize(data) {
     updateState = data.updateState;
-    setTimeout(() => {
-        updateState.currentIterations = updateState.currentIterations < updateState.totalIterations
-            ? updateState.totalIterations : updateState.currentIterations + 1;
-    }, 200);
 }
-
 
 // Exposed functions - API
 ipcMain.handle('getUpdateState', () => {
     return JSON.stringify(updateState);
 });
 
+ipcMain.handle("getCurrentVersion", async () => {
+    return (await prisma.setting.findUnique({select: {value: true}, where: {name: "version"}})).value;
+});
+
+ipcMain.handle("getChampions", async () => {
+    var champs =  await prisma.champion.findMany({orderBy: {id: "asc"}});
+    champs.forEach(champ => champ.image = `/src/assets/images/loading-screen/${champ.id}.jpg`);
+    return champs;
+});

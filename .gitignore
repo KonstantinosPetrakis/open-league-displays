@@ -14,7 +14,10 @@ dist-electron
 release
 *.local
 storage/*
-!storage/.gitkeep
+!storage/schema.prisma
+src/assets/images/high-res/*.jpg
+src/assets/images/loading-screen/*.jpg
+src/assets/images/thumbnails/**/*.jpg
 
 # Editor directories and files
 .vscode/.debug.env

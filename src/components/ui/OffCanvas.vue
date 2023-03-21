@@ -1,15 +1,15 @@
 <script setup>
-import { ref } from 'vue';
+import CoolBorder from "../svgs/CoolBorder.vue"
 
-const active = ref(false);
+const props = defineProps({
+    active: {type: Boolean, default: false},
+    exitButton: {type: Boolean, default: true}
+});
 
 </script>
 
 <style scoped>
     .off-canvas {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
         position: fixed;
         visibility: hidden;
         top: 50%;
@@ -18,13 +18,20 @@ const active = ref(false);
         width: 75%;
         height: 90%;
         z-index: 100;
-        padding: 1rem;
         background-color: #010A13;
         border: 1px solid #785b288d;
-        overflow: auto;
     }
     .off-canvas.active {
         visibility: visible;
+    }
+    .off-canvas-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 1rem;
+        overflow: auto;
     }
     .background-filter {
         position: fixed;
@@ -35,13 +42,15 @@ const active = ref(false);
         z-index: 99;
         background-color: rgba(0, 0, 0, 0.646);
         visibility: hidden;
-        overflow: hidden;
     }
     .background-filter.active {
         visibility: visible;
     }
     .simple-button {
         all: unset;
+    }
+    .simple-button:hover {
+        cursor: pointer;
     }
     .exit-button {
         margin-top: 1rem;
@@ -53,8 +62,13 @@ const active = ref(false);
         <slot> </slot>
     </button>
     <div class="background-filter" :class="{'active': active}"></div>
+
     <div class="off-canvas" :class="{'active': active}">
-        <slot name="off-canvas"> </slot> 
-        <button class="exit-button" @click="active=false"> done </button>
+        <cool-border> </cool-border>
+        <div class="off-canvas-content">
+            <slot name="off-canvas"> </slot> 
+            <button v-if="exitButton" class="exit-button" @click="active=false"> done </button>
+        </div>
+        <cool-border position="bottom"> </cool-border> 
     </div>
 </template>

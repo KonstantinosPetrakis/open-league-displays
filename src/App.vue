@@ -1,12 +1,7 @@
 <script setup>
-import { ref } from 'vue';
-import { RouterView, useRouter } from "vue-router";
+import { RouterView } from "vue-router";
 import NavBar from './components/NavBar.vue';
 import Footer from './components/Footer.vue';
-
-
-const router = useRouter() 
-console.log("Route Object", router.currentRoute.value)
 
 </script>
 
@@ -27,6 +22,11 @@ console.log("Route Object", router.currentRoute.value)
 
 <template>
     <div id="main-container">
+        <!-- 
+            Here I should add a offcanvas without exitbutton if this is the first time the app
+            is opened so the download is done.
+            I could save a boolean in the localstorage to check if this is the first time.
+        -->
         <nav>
             <nav-bar> </nav-bar>
         </nav>
