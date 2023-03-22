@@ -194,3 +194,9 @@ button:hover {
     color: #F0E6D2;
     transition: color .5s;    
 }
+
+/* Give priority to the nav-bar offcanvas over main's positioned elements */
+nav {
+    position: relative;
+    z-index: 1; 
+}

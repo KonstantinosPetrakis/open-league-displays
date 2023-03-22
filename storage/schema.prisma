@@ -14,6 +14,7 @@ model Setting {
 
 model Champion {
     id    String @id
+    name  String
     title String
     lore  String
     skins Skin[]

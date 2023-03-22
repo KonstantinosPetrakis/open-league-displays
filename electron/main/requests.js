@@ -66,7 +66,7 @@ async function updateChampion(version, champion) {
     champion = (await champion.json()).data[championId];
     
     if (!await prisma.champion.findUnique({where: {id: championId}})) {
-        await prisma.champion.create({data: {id: champion.id, title: champion.title, lore: champion.lore}});
+        await prisma.champion.create({data: {id: champion.id, name: champion.name, title: champion.title, lore: champion.lore}});
         var loadingScreenSplashArt = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`);
         saveImage(loadingScreenSplashArt.body, `src/assets/images/loading-screen/${champion.id}.jpg`); 
     }
