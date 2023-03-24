@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
     getUpdateState: () => ipcRenderer.invoke('getUpdateState'),
-    getCurrentVersion: () => ipcRenderer.invoke('getCurrentVersion'),
-    getChampions: () => ipcRenderer.invoke('getChampions')
+    getInformation: () => ipcRenderer.invoke('getInformation'),
+    getChampions: () => ipcRenderer.invoke('getChampions'),
+    getChampion: (id) => ipcRenderer.invoke('getChampion', id)
 });

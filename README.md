@@ -1,3 +1,3 @@
 # Open League Displays
-For the initial configuration I used this helpful template:
-https://github.com/electron-vite/electron-vite-vue
+## Todo:
+    * Clear images and database before running the build script

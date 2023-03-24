@@ -55,12 +55,12 @@ import Settings from "./Settings.vue";
     <div id="nav-bar">
         <div id="logo">
             <router-link to="/">
-                <img src="../assets/images/lol_icon.png" alt="logo of league of legends">
+                <img src="/images/lol_icon.png" alt="logo of league of legends">
             </router-link>
         </div>
         <div id="items">
-            <router-link to="/">Champions</router-link>
-            <router-link to="/favorites">Favorites</router-link>
+            <router-link :to="{name: 'index'}">Champions</router-link>
+            <router-link :to="{name: 'favorites'}">Favorites</router-link>
         </div>
         <div id="settings">
             <settings> </settings>

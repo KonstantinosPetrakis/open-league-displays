@@ -1,4 +1,6 @@
 <script setup>
+import { RouterLink } from "vue-router";
+
 const props = defineProps({champion: { type: Object, required: true}});
 
 </script>
@@ -9,7 +11,6 @@ const props = defineProps({champion: { type: Object, required: true}});
         position: relative;
         flex-direction: column;
         align-items: center;
-        width: 8rem;
         padding: 0;
         margin: 0;
         border: 1px solid #f0e6d214;
@@ -28,6 +29,9 @@ const props = defineProps({champion: { type: Object, required: true}});
             won't work as intended.
         */ 
     }
+    a {
+        text-decoration: none;
+    }
     .champion-name {
         text-align: center;
         font-size: .72rem;
@@ -39,8 +43,8 @@ const props = defineProps({champion: { type: Object, required: true}});
 </style>
 
 <template>
-    <div class="champion">
+    <router-link :to="{name: 'champion', params: {id: champion.id} }" class="champion">
         <img :src="champion.image" :alt="`image of ${champion.id}`">
         <div class="champion-name"> {{ champion.name }} </div>
-    </div>
+    </router-link>
 </template>

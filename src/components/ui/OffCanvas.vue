@@ -3,7 +3,8 @@ import CoolBorder from "../svgs/CoolBorder.vue"
 
 const props = defineProps({
     active: {type: Boolean, default: false},
-    exitButton: {type: Boolean, default: true}
+    exitButton: {type: Boolean, default: true},
+    compact: {type: Boolean, default: false}
 });
 
 </script>
@@ -24,6 +25,10 @@ const props = defineProps({
     .off-canvas.active {
         visibility: visible;
     }
+    .off-canvas.compact {
+        width: 75%;
+        height: auto;
+    }
     .off-canvas-content {
         display: flex;
         flex-direction: column;
@@ -32,6 +37,9 @@ const props = defineProps({
         height: 100%;
         padding: 1rem;
         overflow: auto;
+    }
+    .off-canvas.compact .off-canvas-content {
+        padding: 0;
     }
     .background-filter {
         position: fixed;
@@ -61,9 +69,10 @@ const props = defineProps({
     <button class="simple-button" @click="active=true">
         <slot> </slot>
     </button>
-    <div class="background-filter" :class="{'active': active}"></div>
 
-    <div class="off-canvas" :class="{'active': active}">
+    <div class="background-filter" :class="{'active': active}" @click="active=!compact"></div>
+
+    <div class="off-canvas" :class="{'active': active, 'compact': compact}">
         <cool-border> </cool-border>
         <div class="off-canvas-content">
             <slot name="off-canvas"> </slot> 

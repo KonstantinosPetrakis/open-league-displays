@@ -28,7 +28,7 @@ import InformationIcon from "./svgs/InformationIcon.vue";
 <template>
     <div id="footer">
         <small> Open League Displays v0.1 </small>
-        <router-link to="/information">
+        <router-link :to="{name: 'information'}">
             <information-icon> </information-icon>
         </router-link>
     </div>

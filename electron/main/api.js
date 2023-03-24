@@ -14,12 +14,24 @@ ipcMain.handle('getUpdateState', () => {
     return JSON.stringify(updateState);
 });
 
-ipcMain.handle("getCurrentVersion", async () => {
-    return (await prisma.setting.findUnique({select: {value: true}, where: {name: "version"}})).value;
+ipcMain.handle("getInformation", async () => {
+    const version = (await prisma.setting.findUnique({select: {value: true}, where: {name: "version"}})).value;
+    const championsCount = (await prisma.champion.count());
+    const skinsCount = (await prisma.skin.count());
+    return {version, championsCount, skinsCount};
 });
 
 ipcMain.handle("getChampions", async () => {
     var champs =  await prisma.champion.findMany({orderBy: {id: "asc"}});
-    champs.forEach(champ => champ.image = `/src/assets/images/loading-screen/${champ.id}.jpg`);
+    champs.forEach(champ => champ.image = `./images/loading-screen/${champ.id}.jpg`);
     return champs;
+});
+
+ipcMain.handle("getChampion", async (event, id) => {
+    var champ = await prisma.champion.findUnique({where: {id: id}, include: {skins: true}});
+    champ.skins.forEach((skin) => {
+        if (skin.name == "default") skin.name = `Classic ${champ.name}`
+        skin.image = `./images/thumbnails/${champ.id}/${skin.number}.jpg`;
+    });
+    return champ;
 });

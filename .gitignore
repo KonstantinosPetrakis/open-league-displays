@@ -13,11 +13,11 @@ dist-ssr
 dist-electron
 release
 *.local
-storage/*
-!storage/schema.prisma
-src/assets/images/high-res/*.jpg
-src/assets/images/loading-screen/*.jpg
-src/assets/images/thumbnails/**/*.jpg
+distribute
+storage
+public/images/high-res/*.jpg
+public/images/loading-screen/*.jpg
+public/images/thumbnails/**/*.jpg
 
 # Editor directories and files
 .vscode/.debug.env

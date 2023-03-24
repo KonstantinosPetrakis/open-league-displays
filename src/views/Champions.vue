@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import ChampionPreview from "../components/ChampionPreview.vue";
+import SearchIcon from "../components/svgs/SearchIcon.vue";
 
 const champions = ref([]);
 const championSearch = ref("");
@@ -27,11 +28,17 @@ window.api.getChampions().then(champs => champions.value = champs);
     }
     #search-container {
         grid-column: 1 / -1;
+        display: flex;
+        margin: -.5rem;
     }
     input {
         all: unset;
         display: block;
         width: 20rem;
+        font-size: .9rem;
+        letter-spacing: .05rem;
+        text-transform: uppercase;
+        color: #c7bd93;
     }
 </style>
 
@@ -39,6 +46,7 @@ window.api.getChampions().then(champs => champions.value = champs);
     <h1> Champions </h1>
     <div id="champions">
         <div id="search-container">
+            <search-icon> </search-icon>
             <input type="text" @input="event => championSearch = event.target.value" placeholder="SEARCH FOR A CHAMPION">
         </div>
         <champion-preview v-for="champion of filteredChampions" :key="champion.id" :champion="champion"/>

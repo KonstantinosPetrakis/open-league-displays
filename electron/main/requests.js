@@ -68,7 +68,7 @@ async function updateChampion(version, champion) {
     if (!await prisma.champion.findUnique({where: {id: championId}})) {
         await prisma.champion.create({data: {id: champion.id, name: champion.name, title: champion.title, lore: champion.lore}});
         var loadingScreenSplashArt = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`);
-        saveImage(loadingScreenSplashArt.body, `src/assets/images/loading-screen/${champion.id}.jpg`); 
+        saveImage(loadingScreenSplashArt.body, `public/images/loading-screen/${champion.id}.jpg`); 
     }
         
     var storedSkins = await prisma.skin.findMany({select: {number: true}, where: {championId: champion.id}});
@@ -93,7 +93,7 @@ async function updateSkin(champion, skin) {
     skin = {id: +skin.id, number: skin.num, name: skin.name, championId: champion.id};
     skin = await prisma.skin.upsert({where: {id: skin.id}, create: skin, update: skin});
     var skinSplash = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_${skin.number}.jpg`);
-    saveImage(skinSplash.body, `src/assets/images/thumbnails/${champion.id}/${skin.number}.jpg`);
+    saveImage(skinSplash.body, `public/images/thumbnails/${champion.id}/${skin.number}.jpg`);
     return skin;
 }
 

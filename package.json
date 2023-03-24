@@ -22,7 +22,7 @@
         "dev": "vite",
         "build": "vite build && electron-builder",
         "preview": "vite preview",
-        "reset": "npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './src/assets/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './src/assets/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force"
+        "reset": "npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './public/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './public/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^4.0.0",
@@ -52,6 +52,9 @@
         "mac": {
             "icon": "./public/favicon.ico",
             "category": "public.app-category.utilities"
+        },
+        "directories": {
+            "output": "distribute"
         },
         "files": [
             "dist/**/*",
