@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import { PrismaClient } from "@prisma/client";
+import { downloadHighResSkin } from "./requests";
 
 // Initizalization and global variables
 const prisma = new PrismaClient();
@@ -29,9 +30,10 @@ ipcMain.handle("getChampions", async () => {
 
 ipcMain.handle("getChampion", async (event, id) => {
     var champ = await prisma.champion.findUnique({where: {id: id}, include: {skins: true}});
-    champ.skins.forEach((skin) => {
-        if (skin.name == "default") skin.name = `Classic ${champ.name}`
-        skin.image = `./images/thumbnails/${champ.id}/${skin.number}.jpg`;
-    });
+    champ.skins.forEach(skin => skin.image = `./images/thumbnails/${champ.id}/${skin.number}.jpg`);
     return champ;
+});
+
+ipcMain.handle("setWallpaper", async (event, skinId) => {
+    await downloadHighResSkin(skinId);
 });

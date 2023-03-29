@@ -10,6 +10,10 @@ const props = defineProps({
 const isFavorite = ref(_isFavorite());
 
 
+function setWallpaper() {
+    window.api.setWallpaper(props.skin.id);
+}
+
 function addToFavorites() {
     const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
     favorites.push(props.skin);
@@ -42,7 +46,7 @@ function _isFavorite() {
         transition: border .6s;
     }
     h4 {
-        color: #be9f60;
+        color: #b7b0a3;
         text-transform: none; 
         margin: .3rem;
     }
@@ -88,9 +92,9 @@ function _isFavorite() {
             </template>
         </off-canvas>
         <div class="buttons">
+            <button @click="setWallpaper"> Wallpaper </button>
             <button @click="removeFromFavorites" v-if="isFavorite"> Remove from favorites </button>
             <button @click="addToFavorites" v-else> Add to favorites </button>
-            <button> Wallpaper </button>
         </div>
     </div>
 </template>

@@ -20,13 +20,13 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "vite build && electron-builder",
+        "build": "npm run reset && vite build && electron-builder",
         "preview": "vite preview",
-        "reset": "npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './public/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './public/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force"
+        "reset": "Remove-Item -Path './dist', './dist-electron', './distribute' -Recurse -Force -ErrorAction SilentlyContinue; npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './public/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './public/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^4.0.0",
-        "electron": "^22.0.3",
+        "electron": "^22.3.4",
         "electron-builder": "^23.6.0",
         "prisma": "^4.11.0",
         "typescript": "^4.9.4",
@@ -38,6 +38,7 @@
     },
     "dependencies": {
         "@prisma/client": "^4.11.0",
+        "electron-is-dev": "^2.0.0",
         "node-fetch": "^2.6.9",
         "sqlite3": "^5.1.4",
         "vue-router": "^4.1.6"
@@ -46,8 +47,12 @@
         "schema": "storage/schema.prisma"
     },
     "build": {
+        "productName": "Open League Displays",
         "win": {
             "icon": "./public/favicon.ico"
+        },
+        "nsis": {
+            "uninstallDisplayName": "Open League Displays"
         },
         "mac": {
             "icon": "./public/favicon.ico",
@@ -64,6 +69,7 @@
             "storage/**/*",
             "node_modules/.prisma/**/*",
             "node_modules/@prisma/client/**/*"
-        ]
+        ],
+        "asar": false
     }
 }

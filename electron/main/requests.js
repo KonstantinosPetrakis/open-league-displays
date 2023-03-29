@@ -36,6 +36,22 @@ export async function checkForUpdate() {
     }    
 }
 
+/**
+ * This function downloads a high resolution splash art for a specific skin.
+ * Moreover it changes the file extension to .jpg from .webp.
+ * @param {Number} skinId 
+ */
+export async function downloadHighResSkin(skinId) {
+    if (fileExists(`public/images/high-res/${skinId}.jpg`)) return;
+    const skin = await prisma.skin.findUnique({where: {id: skinId}, include: {champion: true}});
+    skin.name = skin.name.replace(skin.champion.name, "").replace("/", "").replace(/\s/g, ""); // '/' is for KD/A skin
+    const url = `https://leagueoflegends.fandom.com/wiki/${skin.champion.name}/LoL/Cosmetics?file=${skin.champion.name}_${skin.name}Skin_HD.jpg`;
+
+    // This page is rendered with JavaScript, so we need to use puppeteer to get the image URL.
+    // The following package allows us to use puppeteer in an electron app without an extra
+    // electron executable.
+    // https://www.npmjs.com/package/puppeteer-in-electron
+}
 
 /**
  * This function updates the database and assets.
@@ -90,6 +106,7 @@ async function updateChampion(version, champion) {
  * @returns {object} the updated skin as stored in the database.
  */
 async function updateSkin(champion, skin) {
+    skin.name = skin.name == "default" ? `Original ${champion.name}` : skin.name;
     skin = {id: +skin.id, number: skin.num, name: skin.name, championId: champion.id};
     skin = await prisma.skin.upsert({where: {id: skin.id}, create: skin, update: skin});
     var skinSplash = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_${skin.number}.jpg`);
@@ -100,10 +117,20 @@ async function updateSkin(champion, skin) {
 /**
  * This function saves an image to a file.
  * @param {ReadableStream} image the image to save.
- * @param {string} filePath the file path to save the image to (including the file name).
+ * @param {string} filePath the file path to save the image to (including the file name). The filepath should be such that everything works well in development, the function takes care of writing to different directories in production. 
  */
 async function saveImage(image, filePath) {
+    if (process.env.PRODUCTION == "true") filePath = filePath.replace("public", "resources/app/dist");
     const directoryName = dirname(filePath);
     if (!fs.existsSync(directoryName)) fs.mkdirSync(directoryName, { recursive: true });    
     image.pipe(fs.createWriteStream(filePath));
+}
+
+/**
+ * This function checks if a file exists.
+ * @param {string} filePath the file path to check (including the file name). The filepath should be such that everything works well in development, the function takes care of writing to different directories in production.
+ */
+function fileExists(filePath) {
+    if (process.env.PRODUCTION == "true") filePath = filePath.replace("public", "resources/app/dist");
+    return fs.existsSync(filePath);
 }
