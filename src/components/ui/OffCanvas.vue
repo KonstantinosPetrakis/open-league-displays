@@ -4,7 +4,9 @@ import CoolBorder from "../svgs/CoolBorder.vue"
 const props = defineProps({
     active: {type: Boolean, default: false},
     exitButton: {type: Boolean, default: true},
-    compact: {type: Boolean, default: false}
+    exitButtonText: {type: String, default: 'done'},
+    compact: {type: Boolean, default: false},
+    exitOnClick: {type: Boolean, default: false},
 });
 
 </script>
@@ -57,11 +59,14 @@ const props = defineProps({
     .simple-button {
         all: unset;
     }
+    .simple-button:empty {
+        display: none;
+    }
     .simple-button:hover {
         cursor: pointer;
     }
     .exit-button {
-        margin-top: 1rem;
+        margin: 1rem auto;
     }
 </style>
 
@@ -70,13 +75,13 @@ const props = defineProps({
         <slot> </slot>
     </button>
 
-    <div class="background-filter" :class="{'active': active}" @click="active=!compact"></div>
+    <div class="background-filter" :class="{'active': active}" @click="active=!exitOnClick"></div>
 
     <div class="off-canvas" :class="{'active': active, 'compact': compact}">
         <cool-border> </cool-border>
         <div class="off-canvas-content">
             <slot name="off-canvas"> </slot> 
-            <button v-if="exitButton" class="exit-button" @click="active=false"> done </button>
+            <button v-if="exitButton" class="exit-button" @click="active=false"> {{ exitButtonText}} </button>
         </div>
         <cool-border position="bottom"> </cool-border> 
     </div>

@@ -8,10 +8,11 @@
     "private": true,
     "keywords": [
         "electron",
-        "rollup",
-        "vite",
         "vue3",
-        "vue"
+        "vue",
+        "wallpaper",
+        "league of legends",
+        "lol"
     ],
     "debug": {
         "env": {
@@ -20,7 +21,7 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "npm run reset && vite build && electron-builder",
+        "build": "vite build && electron-builder",
         "preview": "vite preview",
         "reset": "Remove-Item -Path './dist', './dist-electron', './distribute' -Recurse -Force -ErrorAction SilentlyContinue; npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './public/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './public/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force"
     },
@@ -40,8 +41,10 @@
         "@prisma/client": "^4.11.0",
         "electron-is-dev": "^2.0.0",
         "node-fetch": "^2.6.9",
+        "sharp": "^0.32.0",
         "sqlite3": "^5.1.4",
-        "vue-router": "^4.1.6"
+        "vue-router": "^4.1.6",
+        "wallpaper": "^6.1.1"
     },
     "prisma": {
         "schema": "storage/schema.prisma"

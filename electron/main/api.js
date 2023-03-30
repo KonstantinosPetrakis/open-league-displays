@@ -1,13 +1,16 @@
 import { ipcMain } from 'electron';
 import { PrismaClient } from "@prisma/client";
-import { downloadHighResSkin } from "./requests";
+import * as requests from "./requests";
 
 // Initizalization and global variables
 const prisma = new PrismaClient();
 var updateState;
+var win;
 
 export function initialize(data) {
+    win = data.win;
     updateState = data.updateState;
+    requests.initialize(win);
 }
 
 // Exposed functions - API
@@ -35,5 +38,5 @@ ipcMain.handle("getChampion", async (event, id) => {
 });
 
 ipcMain.handle("setWallpaper", async (event, skinId) => {
-    await downloadHighResSkin(skinId);
+    await requests.downloadAndSetWallpaper(skinId);
 });

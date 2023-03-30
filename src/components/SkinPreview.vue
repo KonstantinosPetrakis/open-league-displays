@@ -1,17 +1,25 @@
 <script setup>
 import { ref } from "vue";
 import OffCanvas from "../components/ui/OffCanvas.vue";
+import Spinner from "../components/ui/Spinner.vue";
 
 const props = defineProps({
     skin: {type: Object, required: true},
 });
 
-
+const isSettingWallpaper = ref(false);
+const settingWallpaperFailed = ref(false);
 const isFavorite = ref(_isFavorite());
 
+window.api.onUpdateWallpaper(({skinId, msg}) => {
+    if (skinId !== props.skin.id) return;
+    if (msg === 'timeout') settingWallpaperFailed.value = true;
+    isSettingWallpaper.value = false;
+});
 
 function setWallpaper() {
     window.api.setWallpaper(props.skin.id);
+    isSettingWallpaper.value = true;
 }
 
 function addToFavorites() {
@@ -49,6 +57,11 @@ function _isFavorite() {
         color: #b7b0a3;
         text-transform: none; 
         margin: .3rem;
+        display: -webkit-box; /* Set the display property to a box layout */
+        -webkit-line-clamp: 1; /* Limit the text to one line */
+        -webkit-box-orient: vertical; /* Set the box orientation to vertical */
+        overflow: hidden; /* Hide the overflow */
+        text-overflow: ellipsis; /* Add the ellipsis at the end of the visible text */
     }
     img {
         display: block;
@@ -79,12 +92,11 @@ function _isFavorite() {
         color: #c3beb2;
         transition: color .3s;
     }
-
 </style>
 
 <template>
     <div class="skin-preview">
-        <off-canvas :compact="true" :exit-button="false">
+        <off-canvas :compact="true" :exit-button="false" :exit-on-click="true">
             <h4> {{ skin.name }} </h4>
             <img :src="skin.image" :alt="`Image of ${skin.name}`">
             <template #off-canvas>
@@ -96,5 +108,22 @@ function _isFavorite() {
             <button @click="removeFromFavorites" v-if="isFavorite"> Remove from favorites </button>
             <button @click="addToFavorites" v-else> Add to favorites </button>
         </div>
+        <off-canvas :active="isSettingWallpaper" :compact="true" :exit-button="false" :exit-on-click="false">
+            <template #off-canvas>
+                <h3> Work in progress </h3>
+                {{ skin.name }} is being downloaded... Please wait.
+                <spinner/>
+            </template>
+        </off-canvas>
+        <off-canvas :active="settingWallpaperFailed" :compact="true" :exit-on-click="false" exit-button-text="Sad, but ok">
+            <template #off-canvas>
+                <h3> Failed to find and set wallpaper </h3>
+                <p>
+                    Either the skin is unavailable on LOL Wiki or something went wrong. 
+                    <br>
+                    You could try again, it might work.
+                </p>
+            </template>
+        </off-canvas>
     </div>
 </template>

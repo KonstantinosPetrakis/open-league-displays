@@ -1,4 +1,8 @@
 # Open League Displays
 ## Todo:
-    * Clear images and database before running the build script
+    * Make main->proccess get updateState work
+    * Make first-run to show the updating-offcanvas
+    * Add a clear high-res cache option in settings
     * Remove || true for running update in checkForUpdate
+    * Test in Ubuntu
+    

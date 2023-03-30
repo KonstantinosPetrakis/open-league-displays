@@ -33,6 +33,8 @@ async function createWindow() {
         icon: join(process.env.PUBLIC, 'favicon.ico'),
         webPreferences: {preload},
         autoHideMenuBar: true,
+        width: 1280,
+        height: 720,
     });
 
     if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
@@ -44,9 +46,9 @@ async function createWindow() {
         win.loadFile(indexHtml);
     }
 
+    initialize({updateState, win}); 
 }
 
-initialize({updateState}); 
 app.whenReady().then(createWindow);
 // checkForUpdate();
 
