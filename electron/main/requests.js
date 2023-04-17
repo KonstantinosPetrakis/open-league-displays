@@ -14,15 +14,19 @@ import fs from 'fs';
 const prisma = new PrismaClient();
 var mainWindow; // the main window
 
-export var updateState = {
-    checkedForUpdate: false,
-    updating: false,
-    currentIterations: 0,
-    totalIterations: 0
-}
+export var updateState = {};
 
 export function initialize(win) {
     mainWindow = win;
+}
+
+function resetUpdateState() {
+    updateState = {
+        checkedForUpdate: false,
+        updating: false,
+        currentIterations: 0,
+        totalIterations: 0
+    }
 }
 
 /**
@@ -32,14 +36,16 @@ export async function checkForUpdate() {
     const storedVersion = await prisma.setting.findUnique({select: {value: true}, where: {name: "version"}});
     var version = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
     version = (await version.json())[0];
+    resetUpdateState();
     updateState.checkedForUpdate = true;
-    if (storedVersion != version || true) {
+    if (storedVersion != version) {
         updateState.updating = true;
         var versionPair = {name: "version", value: version} 
         await prisma.setting.upsert({where: {name: "version"}, create: versionPair, update: versionPair});
         await update(version);
         updateState.updating = false;
-    }    
+    }
+    mainWindow.webContents.send("updateUpdateState", updateState);    
 }
 
 /**
@@ -54,6 +60,29 @@ export async function downloadAndSetWallpaper(skinId) {
         // Known issue with duplicate name skins: Draven Draven, Bard Bard, ...
         skin.name = skin.name.replace(skin.champion.name, "").replace("/", "").replace(":", "").replace(/\s/g, ""); // '/' is for KD/A skin
         const url = `https://leagueoflegends.fandom.com/wiki/${skin.champion.name}/LoL/Cosmetics?file=${skin.champion.name}_${skin.name}Skin_HD.jpg`;
+
+        // Handler for the wallpaper URL (see below)
+        // When the high-res wallpaper URL is received, destroy the window and download the image,
+        // afterward convert it to .jpg and save it.
+        ipcMain.removeHandler("sendWallpaperURL"); // Remove the old handler if there is one.
+        ipcMain.handle("sendWallpaperURL", async (event, url) => {
+            win.destroy();
+            ipcMain.removeHandler("sendWallpaperURL");
+            if (url == "timeout") mainWindow.webContents.send("updateWallpaper", {skinId, msg: "timeout"});
+            else if (url == "fail") mainWindow.webContents.send("updateWallpaper", {skinId, msg: "fail"});
+            else {
+                const highResImage = await fetch(url);
+                const highResJpgImage = sharp(await highResImage.buffer()).jpeg({quality: 100});
+                await saveImage(highResJpgImage, `public/images/high-res/${skinId}.jpg`);
+                import("wallpaper").then(async ({setWallpaper}) => {
+                    // Wait a second to make sure the image is saved.
+                    setTimeout(() => {
+                        setWallpaper(getCorrectFilePath(`public/images/high-res/${skinId}.jpg`));
+                        mainWindow.webContents.send("updateWallpaper", {skinId, msg: "success"});
+                    }, 1000);
+                });
+            }
+        });
 
         // Create a new window for scraping the js-based fandom wiki and make it send
         // the high-res wallpaper URL to the handler below.
@@ -80,32 +109,17 @@ export async function downloadAndSetWallpaper(skinId) {
                         });
                     });
                 }
+                // Send succesfully message
                 waitForElm('.see-full-size-link').then((elm) => {
                     window.api.sendWallpaperURL(elm.href);
                 });
+                // Send fail message
+                waitForElm('.modalContent > h1').then((elm) => {
+                    window.api.sendWallpaperURL("fail");
+                });
+                // Send timeout message
                 setTimeout(() => window.api.sendWallpaperURL("timeout"), 10000);
             `);
-        });
-
-        // When the high-res wallpaper URL is received, destroy the window and download the image,
-        // afterward convert it to .jpg and save it.
-        ipcMain.removeHandler("sendWallpaperURL"); // Remove the old handler if there is one.
-        ipcMain.handle("sendWallpaperURL", async (event, url) => {
-            win.destroy();
-            ipcMain.removeHandler("sendWallpaperURL");
-            if (url == "timeout") mainWindow.webContents.send("updateWallpaper", {skinId, msg: "timeout"});
-            else {
-                const highResImage = await fetch(url);
-                const highResJpgImage = sharp(await highResImage.buffer()).jpeg({quality: 100});
-                await saveImage(highResJpgImage, `public/images/high-res/${skinId}.jpg`);
-                import("wallpaper").then(async ({setWallpaper}) => {
-                    // Wait a second to make sure the image is saved.
-                    setTimeout(() => {
-                        setWallpaper(getCorrectFilePath(`public/images/high-res/${skinId}.jpg`));
-                        mainWindow.webContents.send("updateWallpaper", {skinId, msg: "success"});
-                    }, 1000);
-                });
-            }
         });
     }
     else {
@@ -155,7 +169,7 @@ async function updateChampion(version, champion) {
     await Promise.all(skins);
 
     updateState.currentIterations++;
-    console.log(updateState.currentIterations + "/" + updateState.totalIterations)
+    mainWindow.webContents.send("updateUpdateState", updateState);
     return champion;
 }
 
@@ -199,7 +213,7 @@ function fileExists(filePath) {
  * @param {string} filePath the file path to check (including the file name). The filepath should be such that everything works well in development, the function takes care of writing to different directories in production.
  * @returns the correct file path for the current environment.
  */
-function getCorrectFilePath(filePath) {
+export function getCorrectFilePath(filePath) {
     if (process.env.PRODUCTION == "true") filePath = filePath.replace("public", "resources/app/dist");
     return filePath;
 }

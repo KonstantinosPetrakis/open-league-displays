@@ -1,7 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import { release } from 'node:os';
 import { join } from 'node:path';
-import { checkForUpdate, updateState } from "./requests.js";
 import { initialize } from "./api.js";
 import isDev from "electron-is-dev";
 
@@ -46,11 +45,10 @@ async function createWindow() {
         win.loadFile(indexHtml);
     }
 
-    initialize({updateState, win}); 
+    initialize({win}); 
 }
 
 app.whenReady().then(createWindow);
-// checkForUpdate();
 
 app.on('window-all-closed', () => {
     win = null;

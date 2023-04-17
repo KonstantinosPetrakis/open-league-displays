@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { onUnmounted, ref } from "vue";
 import OffCanvas from "../components/ui/OffCanvas.vue";
 import Spinner from "../components/ui/Spinner.vue";
 
@@ -13,9 +13,11 @@ const isFavorite = ref(_isFavorite());
 
 window.api.onUpdateWallpaper(({skinId, msg}) => {
     if (skinId !== props.skin.id) return;
-    if (msg === 'timeout') settingWallpaperFailed.value = true;
+    if (msg === 'timeout' || msg == "fail") settingWallpaperFailed.value = true;
     isSettingWallpaper.value = false;
 });
+
+onUnmounted(() => window.api.offUpdateWallpaper());
 
 function setWallpaper() {
     window.api.setWallpaper(props.skin.id);
@@ -115,7 +117,7 @@ function _isFavorite() {
                 <spinner/>
             </template>
         </off-canvas>
-        <off-canvas :active="settingWallpaperFailed" :compact="true" :exit-on-click="false" exit-button-text="Sad, but ok">
+        <off-canvas v-model:active="settingWallpaperFailed" :compact="true" :exit-on-click="false" exit-button-text="Sad, but ok">
             <template #off-canvas>
                 <h3> Failed to find and set wallpaper </h3>
                 <p>

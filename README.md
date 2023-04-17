@@ -1,8 +1,5 @@
 # Open League Displays
 ## Todo:
-    * Make main->proccess get updateState work
-    * Make first-run to show the updating-offcanvas
-    * Add a clear high-res cache option in settings
-    * Remove || true for running update in checkForUpdate
-    * Test in Ubuntu
+    * Add a clear high-res cache option in settings and show current cache size
+    * Compile & Test in Ubuntu and maybe MAC OS
     

@@ -1,5 +1,6 @@
 <script setup>
 import CoolBorder from "../svgs/CoolBorder.vue"
+import { computed, watch, ref } from "vue";
 
 const props = defineProps({
     active: {type: Boolean, default: false},
@@ -7,6 +8,19 @@ const props = defineProps({
     exitButtonText: {type: String, default: 'done'},
     compact: {type: Boolean, default: false},
     exitOnClick: {type: Boolean, default: false},
+});
+
+const emit = defineEmits(['update:active']);
+
+const _active = ref(props.active); // This variable is used so v-model is not always required
+watch(props, (value) => _active.value = value.active);
+
+const activeProxy = computed({
+    get: () => _active.value,
+    set: (value) => {
+        emit('update:active', value);
+        _active.value = value;
+    }
 });
 
 </script>
@@ -71,17 +85,17 @@ const props = defineProps({
 </style>
 
 <template>
-    <button class="simple-button" @click="active=true">
+    <button class="simple-button" @click="activeProxy=true">
         <slot> </slot>
     </button>
 
-    <div class="background-filter" :class="{'active': active}" @click="active=!exitOnClick"></div>
+    <div class="background-filter" :class="{'active': activeProxy}" @click="activeProxy=!exitOnClick"></div>
 
-    <div class="off-canvas" :class="{'active': active, 'compact': compact}">
+    <div class="off-canvas" :class="{'active': activeProxy, 'compact': compact}">
         <cool-border> </cool-border>
         <div class="off-canvas-content">
             <slot name="off-canvas"> </slot> 
-            <button v-if="exitButton" class="exit-button" @click="active=false"> {{ exitButtonText}} </button>
+            <button v-if="exitButton" class="exit-button" @click="activeProxy=false"> {{ exitButtonText}} </button>
         </div>
         <cool-border position="bottom"> </cool-border> 
     </div>
