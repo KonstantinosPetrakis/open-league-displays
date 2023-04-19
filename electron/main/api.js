@@ -47,11 +47,8 @@ ipcMain.handle("getCacheSize", async () => {
 });
 
 ipcMain.handle("clearCache", async () => {
-    // read this https://stackoverflow.com/questions/27072866/how-to-remove-all-files-from-directory-without-removing-directory-in-node-js
-    // const filePath = requests.getCorrectFilePath("public/images/high-res");
-    // fs.readdir(filePath, (_, files) => {
-    //     for (const file of files) {
-    //         console.log(file);
-    //     }
-    // });
+    const filePath = requests.getCorrectFilePath("public/images/high-res");
+    fs.readdir(filePath, (_, files) => {
+        for (const file of files) if (file.endsWith(".jpg")) fs.unlinkSync(path.join(filePath, file));
+    });
 });

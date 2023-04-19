@@ -10,6 +10,10 @@ function refreshCache() {
     window.api.getCacheSize().then(size => cacheSize.value = size);
 }
 
+function clearCache() {
+    window.api.clearCache();
+}
+
 const information = ref({});
 const cacheSize = ref(0);
 window.api.getInformation().then(info => information.value = info);
@@ -61,7 +65,7 @@ h4 {
             <div id="cache-manager">
                 <h4> Cache </h4>
                 Current size: {{ cacheSize }} MB 
-                <button @click="window.api.clearCache()" title="Erase the cache"> 
+                <button @click="clearCache()" title="Erase the cache"> 
                     <sweep-icon> </sweep-icon>
                 </button>
                 <button @click="refreshCache()" title="Refresh the cache size">
