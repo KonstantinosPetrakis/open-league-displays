@@ -2,13 +2,11 @@ import { app, BrowserWindow } from 'electron';
 import { release } from 'node:os';
 import { join } from 'node:path';
 import { initialize } from "./api.js";
-import isDev from "electron-is-dev";
 
 
 process.env.DIST_ELECTRON = join(__dirname, '..');
 process.env.DIST = join(process.env.DIST_ELECTRON, '../dist');
 process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL ? join(process.env.DIST_ELECTRON, '../public') : process.env.DIST;
-process.env.PRODUCTION = !isDev;
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration();
 

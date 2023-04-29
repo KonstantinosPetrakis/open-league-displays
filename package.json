@@ -3,15 +3,19 @@
     "version": "0.0.1",
     "main": "dist-electron/main/index.js",
     "description": "An open-source cross-platform league displays",
-    "author": "Konstantinos Petrakis",
+    "author": "Konstantinos Petrakis <konstpetrakis01@gmail.com>",
     "license": "MIT",
     "private": true,
     "keywords": [
         "electron",
         "vue3",
         "vue",
+        "node",
         "wallpaper",
         "league of legends",
+        "league",
+        "displays",
+        "league-displays",
         "lol"
     ],
     "debug": {
@@ -21,9 +25,11 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "vite build && electron-builder",
+        "build-windows": "vite build && electron-builder",
+        "build": "vite build && chmod 777 ./dist/images && electron-builder",
         "preview": "vite preview",
-        "reset": "Remove-Item -Path './dist', './dist-electron', './distribute' -Recurse -Force -ErrorAction SilentlyContinue; npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './public/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './public/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force"
+        "reset-windows": "Remove-Item -Path './dist', './dist-electron', './distribute' -Recurse -Force -ErrorAction SilentlyContinue; npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './public/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './public/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force",
+        "reset": "rm -rf ./dist ./dist-electron ./distribute ./public/images/high-res ./public/images/loading-screen ./public/images/thumbnails && mkdir -p ./public/images/high-res ./public/images/loading-screen ./public/images/thumbnails && touch ./public/images/high-res/.gitkeep && touch ./public/images/loading-screen/.gitkeep && touch ./public/images/thumbnails/.gitkeep && npx prisma migrate reset && npx prisma db push && chmod -R 777 ."
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^4.0.0",
@@ -61,6 +67,12 @@
         "mac": {
             "icon": "./public/favicon.ico",
             "category": "public.app-category.utilities"
+        },
+        "linux": {
+            "icon": "./public/favicon.png",
+            "target": [
+                "deb"
+            ]
         },
         "directories": {
             "output": "distribute"

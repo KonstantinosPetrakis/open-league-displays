@@ -1,25 +1,37 @@
 /**
- * This module handles the update process by making requests to the Riot API.
- * It also handles the download of the high resolution splash arts from the League of Legends fandom wiki.
+ * This module handles the update process by making requests to the Riot (DataDragon) API.
+ * It also handles the download of the high resolution splash arts from the League of Legends fandom wiki
+ * and the conversion of the .webp images to .jpg as well as setting them as the wallpaper.
  */
 
+
+const { exec } = require('child_process');
 import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
 import { BrowserWindow, ipcMain } from "electron";
 import sharp from "sharp";
 import { dirname, join } from 'path';
 import fs from 'fs';
+import isDev from "electron-is-dev";
 
 
 const prisma = new PrismaClient();
-var mainWindow; // the main window
+var updateState = {}; // This object is used to send the update state to the renderer process.
+var mainWindow; // the main window, it will be initialized in the initialize function
+export const imageDirectory = isDev ? join(__dirname, "../../public/images") : join(dirname(process.execPath), "resources/app/dist/images");
 
-export var updateState = {};
-
+/**
+ * This function initializes the requests module.
+ * @param {Object} win the main window, which will be used to communicate with the renderer process.
+ */
 export function initialize(win) {
     mainWindow = win;
 }
 
+
+/**
+ * This function resets the update state object.
+ */
 function resetUpdateState() {
     updateState = {
         checkedForUpdate: false,
@@ -28,6 +40,7 @@ function resetUpdateState() {
         totalIterations: 0
     }
 }
+
 
 /**
  * This function checks if there is a new version of the game and if there is, it updates the database and assets.
@@ -50,21 +63,23 @@ export async function checkForUpdate() {
 
 /**
  * This function downloads a high resolution splash art for a specific skin.
- * Moreover it changes the file extension to .jpg from .webp.
- * @param {Number} skinId 
+ * Moreover it changes the file extension to .jpg from .webp and sets it as the wallpaper.
+ * @param {Number} skinId the id of the skin.
  */
 export async function downloadAndSetWallpaper(skinId) {
-    if (!fileExists(`public/images/high-res/${skinId}.jpg`)) {
+    if (!fs.existsSync(`${imageDirectory}/high-res/${skinId}.jpg`)) {
         // Create the URL
         const skin = await prisma.skin.findUnique({where: {id: skinId}, include: {champion: true}});
-        // Known issue with duplicate name skins: Draven Draven, Bard Bard, ...
+        // Known issue with duplicate name skins: Draven Draven, Bard Bard, won't bother for now ...
         skin.name = skin.name.replace(skin.champion.name, "").replace("/", "").replace(":", "").replace(/\s/g, ""); // '/' is for KD/A skin
         const url = `https://leagueoflegends.fandom.com/wiki/${skin.champion.name}/LoL/Cosmetics?file=${skin.champion.name}_${skin.name}Skin_HD.jpg`;
 
         // Handler for the wallpaper URL (see below)
         // When the high-res wallpaper URL is received, destroy the window and download the image,
         // afterward convert it to .jpg and save it.
-        ipcMain.removeHandler("sendWallpaperURL"); // Remove the old handler if there is one.
+        // P.S: Everything is done like this because the fandom wiki uses js to render the page and 
+        // can't be scraped with node-fetch.
+        ipcMain.removeHandler("sendWallpaperURL"); // Remove the old handler if there is one (this could happen if the user clicks on another skin before the previous one is downloaded)
         ipcMain.handle("sendWallpaperURL", async (event, url) => {
             win.destroy();
             ipcMain.removeHandler("sendWallpaperURL");
@@ -73,29 +88,25 @@ export async function downloadAndSetWallpaper(skinId) {
             else {
                 const highResImage = await fetch(url);
                 const highResJpgImage = sharp(await highResImage.buffer()).jpeg({quality: 100});
-                await saveImage(highResJpgImage, `public/images/high-res/${skinId}.jpg`);
-                import("wallpaper").then(async ({setWallpaper}) => {
-                    // Wait a second to make sure the image is saved.
-                    setTimeout(() => {
-                        setWallpaper(getCorrectFilePath(`public/images/high-res/${skinId}.jpg`));
-                        mainWindow.webContents.send("updateWallpaper", {skinId, msg: "success"});
-                    }, 1000);
-                });
+                await saveImage(highResJpgImage, `${imageDirectory}/high-res/${skinId}.jpg`);
+                // Wait a second to make 100% sure the image is saved.
+                setTimeout(() => setDownloadedSkinAsWallpaper(skinId), 1000);
             }
         });
 
         // Create a new window for scraping the js-based fandom wiki and make it send
-        // the high-res wallpaper URL to the handler below.
         const win = new BrowserWindow({show: false, webPreferences: {preload: join(__dirname, '../preload/index.js')}});
         win.loadURL(url);
         win.webContents.on("dom-ready", () => {
             win.webContents.executeJavaScript(`
                 function waitForElm(selector) {
                     return new Promise(resolve => {
+                        // If the element is already in the DOM, resolve immediately
                         if (document.querySelector(selector)) {
                             return resolve(document.querySelector(selector));
                         }
-                
+
+                        // Else wait for it to appear and then resolve
                         const observer = new MutationObserver(mutations => {
                             if (document.querySelector(selector)) {
                                 resolve(document.querySelector(selector));
@@ -109,7 +120,7 @@ export async function downloadAndSetWallpaper(skinId) {
                         });
                     });
                 }
-                // Send succesfully message
+                // Send successful message
                 waitForElm('.see-full-size-link').then((elm) => {
                     window.api.sendWallpaperURL(elm.href);
                 });
@@ -122,12 +133,24 @@ export async function downloadAndSetWallpaper(skinId) {
             `);
         });
     }
-    else {
-        import("wallpaper").then(async ({setWallpaper}) => {
-            await setWallpaper(getCorrectFilePath(`public/images/high-res/${skinId}.jpg`));
-            mainWindow.webContents.send("updateWallpaper", {skinId, msg: "success"});
-        });
-    }
+    else setDownloadedSkinAsWallpaper(skinId);
+}
+
+
+/**
+ * This function sets the downloaded skin as the wallpaper and sends a message to the renderer process.
+ * It wraps the wallpaper module to hotfix and make it work with new gnome versions.
+ * @param {Number} skinId the id of the skin. 
+ */
+async function setDownloadedSkinAsWallpaper(skinId) {
+    const {setWallpaper} = await import("wallpaper");
+    const path = `${imageDirectory}/high-res/${skinId}.jpg`;
+    setWallpaper(path);
+    exec(`gsettings set org.gnome.desktop.background picture-uri "file://${path}"`);
+    exec(`gsettings set org.gnome.desktop.background picture-uri-dark "file://${path}"`);
+    
+    console.log(path);
+    mainWindow.webContents.send("updateWallpaper", {skinId, msg: "success"});
 }
 
 /**
@@ -158,7 +181,7 @@ async function updateChampion(version, champion) {
     if (!await prisma.champion.findUnique({where: {id: championId}})) {
         await prisma.champion.create({data: {id: champion.id, name: champion.name, title: champion.title, lore: champion.lore}});
         var loadingScreenSplashArt = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`);
-        await saveImage(loadingScreenSplashArt.body, `public/images/loading-screen/${champion.id}.jpg`); 
+        await saveImage(loadingScreenSplashArt.body, `${imageDirectory}/loading-screen/${champion.id}.jpg`); 
     }
         
     var storedSkins = await prisma.skin.findMany({select: {number: true}, where: {championId: champion.id}});
@@ -184,36 +207,17 @@ async function updateSkin(champion, skin) {
     skin = {id: +skin.id, number: skin.num, name: skin.name, championId: champion.id};
     skin = await prisma.skin.upsert({where: {id: skin.id}, create: skin, update: skin});
     var skinSplash = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_${skin.number}.jpg`);
-    await saveImage(skinSplash.body, `public/images/thumbnails/${champion.id}/${skin.number}.jpg`);
+    await saveImage(skinSplash.body, `${imageDirectory}/thumbnails/${champion.id}/${skin.number}.jpg`);
     return skin;
 }
 
 /**
  * This function saves an image to a file.
  * @param {ReadableStream} image the image to save.
- * @param {string} filePath the file path to save the image to (including the file name). The filepath should be such that everything works well in development, the function takes care of writing to different directories in production. 
+ * @param {string} filePath the file path to save the image to (including the file name).
  */
 async function saveImage(image, filePath) {
-    filePath = getCorrectFilePath(filePath);
-    const directoryName = dirname(getCorrectFilePath(filePath));
+    const directoryName = dirname(filePath);
     if (!fs.existsSync(directoryName)) fs.mkdirSync(directoryName, { recursive: true });    
     await image.pipe(fs.createWriteStream(filePath));
-}
-
-/**
- * This function checks if a file exists.
- * @param {string} filePath the file path to check (including the file name). The filepath should be such that everything works well in development, the function takes care of writing to different directories in production.
- */
-function fileExists(filePath) {
-    return fs.existsSync(getCorrectFilePath(filePath));
-}
-
-/**
- * This function returns the correct file path for the current environment.
- * @param {string} filePath the file path to check (including the file name). The filepath should be such that everything works well in development, the function takes care of writing to different directories in production.
- * @returns the correct file path for the current environment.
- */
-export function getCorrectFilePath(filePath) {
-    if (process.env.PRODUCTION == "true") filePath = filePath.replace("public", "resources/app/dist");
-    return filePath;
 }

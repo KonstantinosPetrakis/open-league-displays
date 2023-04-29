@@ -6,7 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import * as requests from "./requests";
 
 
-// Initizalization and global variables
+// Initialization and global variables
 const prisma = new PrismaClient();
 var win;
 
@@ -42,12 +42,12 @@ ipcMain.handle("setWallpaper", async (event, skinId) => {
 });
 
 ipcMain.handle("getCacheSize", async () => {
-    const filePath = requests.getCorrectFilePath("public/images/high-res");
+    const filePath = `${requests.imageDirectory}/high-res`;
     return (fastFolderSizeSync(filePath) / 1000000).toFixed(2);
 });
 
 ipcMain.handle("clearCache", async () => {
-    const filePath = requests.getCorrectFilePath("public/images/high-res");
+    const filePath = `${requests.imageDirectory}/high-res`;
     fs.readdir(filePath, (_, files) => {
         for (const file of files) if (file.endsWith(".jpg")) fs.unlinkSync(path.join(filePath, file));
     });
