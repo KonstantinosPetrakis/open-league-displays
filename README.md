@@ -5,7 +5,9 @@
 Open League Displays is an open source, cross platform application for downloading and
 setting high resolution wallpapers to your desktop. 
 
-<video src="./docs/linux.mp4">
+
+https://user-images.githubusercontent.com/69787592/235344286-61ac2b84-1c0b-463e-b369-7768ce4c8553.mp4
+
 
 The whole idea and design came from the [Riot Game's League Displays](https://displays.riotgames.com/en-us/) which is an application that runs only under Windows and isn't maintained anymore.
 
