@@ -22,6 +22,8 @@ const eta = computed(() => {
     const timeRemaining = timePerIteration * (updateState.value.totalIterations - updateState.value.currentIterations);
     const minutesRemaining = Math.floor(timeRemaining / 1000 / 60);
     const secondsRemaining = Math.floor(timeRemaining / 1000 % 60);
+
+    if (!isFinite(minutesRemaining)) return "Unknown time";
     return `${minutesRemaining} minutes and ${secondsRemaining} seconds`;
 });
 </script>

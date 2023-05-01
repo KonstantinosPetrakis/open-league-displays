@@ -13,12 +13,15 @@ import sharp from "sharp";
 import { dirname, join } from 'path';
 import fs from 'fs';
 import isDev from "electron-is-dev";
+const pLimit = require('p-limit');
 
 
 const prisma = new PrismaClient();
+var limit = pLimit(10) // The more concurrent requests, the more likely the requests will fail in slower internet connections.
 var updateState = {}; // This object is used to send the update state to the renderer process.
 var mainWindow; // the main window, it will be initialized in the initialize function
 export const imageDirectory = isDev ? join(__dirname, "../../public/images") : join(dirname(process.execPath), "resources/app/dist/images");
+
 
 /**
  * This function initializes the requests module.
@@ -27,6 +30,14 @@ export const imageDirectory = isDev ? join(__dirname, "../../public/images") : j
 export function initialize(win) {
     mainWindow = win;
 }
+
+
+/**
+ * A wrapper for fetch that limits the number of concurrent requests to 1.
+ * @param {String} url the url to fetch. 
+ * @returns {Promise} the fetch promise.
+ */
+function limitedFetch(url) { return limit(() => fetch(url));}
 
 
 /**
@@ -47,7 +58,7 @@ function resetUpdateState() {
  */
 export async function checkForUpdate() {
     const storedVersion = await prisma.setting.findUnique({select: {value: true}, where: {name: "version"}});
-    var version = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+    var version = await limitedFetch("https://ddragon.leagueoflegends.com/api/versions.json");
     version = (await version.json())[0];
     resetUpdateState();
     updateState.checkedForUpdate = true;
@@ -86,7 +97,7 @@ export async function downloadAndSetWallpaper(skinId) {
             if (url == "timeout") mainWindow.webContents.send("updateWallpaper", {skinId, msg: "timeout"});
             else if (url == "fail") mainWindow.webContents.send("updateWallpaper", {skinId, msg: "fail"});
             else {
-                const highResImage = await fetch(url);
+                const highResImage = await limitedFetch(url);
                 const highResJpgImage = sharp(await highResImage.buffer()).jpeg({quality: 100});
                 await saveImage(highResJpgImage, `${imageDirectory}/high-res/${skinId}.jpg`);
                 // Wait a second to make 100% sure the image is saved.
@@ -148,8 +159,6 @@ async function setDownloadedSkinAsWallpaper(skinId) {
     setWallpaper(path);
     exec(`gsettings set org.gnome.desktop.background picture-uri "file://${path}"`);
     exec(`gsettings set org.gnome.desktop.background picture-uri-dark "file://${path}"`);
-    
-    console.log(path);
     mainWindow.webContents.send("updateWallpaper", {skinId, msg: "success"});
 }
 
@@ -158,10 +167,11 @@ async function setDownloadedSkinAsWallpaper(skinId) {
  * @param {string} version the current version of the game.
  */
 async function update(version) {
-    var champions = await fetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`); 
+    var champions = await limitedFetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`); 
     champions = Object.values((await champions.json()).data);
     updateState.totalIterations = champions.length;
     
+    mainWindow.webContents.send("updateUpdateState", updateState);
     for (let i=0; i<champions.length; i++) champions[i] = updateChampion(version, champions[i]);
     await Promise.all(champions);
 }
@@ -175,12 +185,12 @@ async function update(version) {
  */
 async function updateChampion(version, champion) {
     var championId = champion.id;
-    champion = await fetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${champion.id}.json`); 
+    champion = await limitedFetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${champion.id}.json`); 
     champion = (await champion.json()).data[championId];
     
     if (!await prisma.champion.findUnique({where: {id: championId}})) {
         await prisma.champion.create({data: {id: champion.id, name: champion.name, title: champion.title, lore: champion.lore}});
-        var loadingScreenSplashArt = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`);
+        var loadingScreenSplashArt = await limitedFetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`);
         await saveImage(loadingScreenSplashArt.body, `${imageDirectory}/loading-screen/${champion.id}.jpg`); 
     }
         
@@ -206,7 +216,7 @@ async function updateSkin(champion, skin) {
     skin.name = skin.name == "default" ? `Original ${champion.name}` : skin.name;
     skin = {id: +skin.id, number: skin.num, name: skin.name, championId: champion.id};
     skin = await prisma.skin.upsert({where: {id: skin.id}, create: skin, update: skin});
-    var skinSplash = await fetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_${skin.number}.jpg`);
+    var skinSplash = await limitedFetch(`http://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_${skin.number}.jpg`);
     await saveImage(skinSplash.body, `${imageDirectory}/thumbnails/${champion.id}/${skin.number}.jpg`);
     return skin;
 }
