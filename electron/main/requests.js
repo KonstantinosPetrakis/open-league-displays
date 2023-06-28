@@ -13,6 +13,7 @@ import sharp from "sharp";
 import { dirname, join } from 'path';
 import fs from 'fs';
 import isDev from "electron-is-dev";
+import crypto from "crypto";
 const pLimit = require('p-limit');
 
 
@@ -79,72 +80,22 @@ export async function checkForUpdate() {
  */
 export async function downloadAndSetWallpaper(skinId) {
     if (!fs.existsSync(`${imageDirectory}/high-res/${skinId}.jpg`)) {
-        // Create the URL
         const skin = await prisma.skin.findUnique({where: {id: skinId}, include: {champion: true}});
         // Known issue with duplicate name skins: Draven Draven, Bard Bard, won't bother for now ...
         skin.name = skin.name.replace(skin.champion.name, "").replace("/", "").replace(":", "").replace(/\s/g, ""); // '/' is for KD/A skin
-        const url = `https://leagueoflegends.fandom.com/wiki/${skin.champion.name}/LoL/Cosmetics?file=${skin.champion.name}_${skin.name}Skin_HD.jpg`;
+        const fileName = `${skin.champion.name}_${skin.name}Skin_HD.jpg`;
+        const fileNameMD5 = crypto.createHash("md5").update(fileName).digest("hex");
+        const url = `https://static.wikia.nocookie.net/leagueoflegends/images/${fileNameMD5[0]}/${fileNameMD5.substring(0, 2)}/${fileName}/revision/latest`;
+        const highResImage = await limitedFetch(url);
+        if (highResImage.status != 200) 
+            return mainWindow.webContents.send("updateWallpaper", {skinId, msg: "fail"});
 
-        // Handler for the wallpaper URL (see below)
-        // When the high-res wallpaper URL is received, destroy the window and download the image,
-        // afterward convert it to .jpg and save it.
-        // P.S: Everything is done like this because the fandom wiki uses js to render the page and 
-        // can't be scraped with node-fetch.
-        ipcMain.removeHandler("sendWallpaperURL"); // Remove the old handler if there is one (this could happen if the user clicks on another skin before the previous one is downloaded)
-        ipcMain.handle("sendWallpaperURL", async (event, url) => {
-            win.destroy();
-            ipcMain.removeHandler("sendWallpaperURL");
-            if (url == "timeout") mainWindow.webContents.send("updateWallpaper", {skinId, msg: "timeout"});
-            else if (url == "fail") mainWindow.webContents.send("updateWallpaper", {skinId, msg: "fail"});
-            else {
-                const highResImage = await limitedFetch(url);
-                const highResJpgImage = sharp(await highResImage.buffer()).jpeg({quality: 100});
-                await saveImage(highResJpgImage, `${imageDirectory}/high-res/${skinId}.jpg`);
-                // Wait a second to make 100% sure the image is saved.
-                setTimeout(() => setDownloadedSkinAsWallpaper(skinId), 1000);
-            }
-        });
-
-        // Create a new window for scraping the js-based fandom wiki and make it send
-        const win = new BrowserWindow({show: false, webPreferences: {preload: join(__dirname, '../preload/index.js')}});
-        win.loadURL(url);
-        win.webContents.on("dom-ready", () => {
-            win.webContents.executeJavaScript(`
-                function waitForElm(selector) {
-                    return new Promise(resolve => {
-                        // If the element is already in the DOM, resolve immediately
-                        if (document.querySelector(selector)) {
-                            return resolve(document.querySelector(selector));
-                        }
-
-                        // Else wait for it to appear and then resolve
-                        const observer = new MutationObserver(mutations => {
-                            if (document.querySelector(selector)) {
-                                resolve(document.querySelector(selector));
-                                observer.disconnect();
-                            }
-                        });
-                
-                        observer.observe(document.body, {
-                            childList: true,
-                            subtree: true
-                        });
-                    });
-                }
-                // Send successful message
-                waitForElm('.see-full-size-link').then((elm) => {
-                    window.api.sendWallpaperURL(elm.href);
-                });
-                // Send fail message
-                waitForElm('.modalContent > h1').then((elm) => {
-                    window.api.sendWallpaperURL("fail");
-                });
-                // Send timeout message
-                setTimeout(() => window.api.sendWallpaperURL("timeout"), 10000);
-            `);
-        });
+        const highResJpgImage = sharp(await highResImage.buffer()).jpeg({quality: 100});
+        await saveImage(highResJpgImage, `${imageDirectory}/high-res/${skinId}.jpg`);
+        // Wait a second to make 100% sure the image is saved.
+        setTimeout(() => setDownloadedSkinAsWallpaper(skinId), 1000);
     }
-    else setDownloadedSkinAsWallpaper(skinId);
+    else setDownloadedSkinAsWallpaper(skinId); 
 }
 
 

@@ -27,6 +27,7 @@
         "dev": "vite",
         "build-windows": "vite build && electron-builder",
         "build": "vite build && chmod 777 ./dist/images && electron-builder",
+        "build-windows-in-linux": "vite build && electron-builder --win",
         "preview": "vite preview",
         "reset-windows": "Remove-Item -Path './dist', './dist-electron', './distribute' -Recurse -Force -ErrorAction SilentlyContinue; npx prisma migrate reset && npx prisma db push && Get-ChildItem -Path './public/images' -Include *.jpg -Recurse | Remove-Item -Force && Get-ChildItem -Path './public/images/thumbnails' -Recurse | Where-Object {$_.PSIsContainer -and @(Get-ChildItem $_.FullName).Count -eq 0} | Remove-Item -Recurse -Force",
         "reset": "rm -rf ./dist ./dist-electron ./distribute ./public/images/high-res ./public/images/loading-screen ./public/images/thumbnails && mkdir -p ./public/images/high-res ./public/images/loading-screen ./public/images/thumbnails && touch ./public/images/high-res/.gitkeep && touch ./public/images/loading-screen/.gitkeep && touch ./public/images/thumbnails/.gitkeep && npx prisma migrate reset && npx prisma db push && chmod -R 777 ."

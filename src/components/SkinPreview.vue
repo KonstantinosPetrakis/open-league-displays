@@ -121,9 +121,9 @@ function _isFavorite() {
             <template #off-canvas>
                 <h3> Failed to find and set wallpaper </h3>
                 <p>
-                    Either the skin is unavailable on LOL Wiki or something went wrong. 
+                    The {{ skin.name }} is unavailable on LOL Wiki. 
                     <br>
-                    You could try again, it might work.
+                    It might be added in the future, but for now, you can try another skin.
                 </p>
             </template>
         </off-canvas>
