@@ -40,4 +40,4 @@ This project is not affiliated with Riot Games in any way. All the images and as
 
 ## Known issues
 - The application doesn't work for skins with repeated champion names (Draven Draven, Bard Bard, ...) the solution is trivial but I am too lazy to implement it right now.
-- Data loss on thumbnails or incomplete download/initial update could happen on slow connections. This most likely happens because the concurrent connections are getting timed out from the DataDragon API Server.
+- Data loss on thumbnails or incomplete download/initial update could happen on extremely (<1mbps) slow connections. This most likely happens because the concurrent connections are getting timed out from the DataDragon API Server.
