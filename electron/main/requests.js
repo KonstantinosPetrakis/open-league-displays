@@ -95,7 +95,7 @@ export async function downloadAndSetWallpaper(skinId) {
         // Wait a second to make 100% sure the image is saved.
         setTimeout(() => setDownloadedSkinAsWallpaper(skinId), 1000);
     }
-    else setDownloadedSkinAsWallpaper(skinId); 
+    else setDownloadedSkinAsWallpaper(skinId);
 }
 
 

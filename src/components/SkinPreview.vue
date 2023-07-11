@@ -17,8 +17,6 @@ window.api.onUpdateWallpaper(({skinId, msg}) => {
     isSettingWallpaper.value = false;
 });
 
-onUnmounted(() => window.api.offUpdateWallpaper());
-
 function setWallpaper() {
     window.api.setWallpaper(props.skin.id);
     isSettingWallpaper.value = true;
