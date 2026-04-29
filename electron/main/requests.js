@@ -147,7 +147,7 @@ async function updateChampion(version, champion) {
         
     var storedSkins = await prisma.skin.findMany({select: {number: true}, where: {championId: champion.id}});
     storedSkins = storedSkins.map(skin => skin.number);
-    var skins = champion.skins.filter(skin => !storedSkins.includes(skin.num));
+    var skins = champion.skins.filter(skin => skin.parentSkin === undefined && !storedSkins.includes(skin.num));
 
     for (let i=0; i<skins.length; i++) skins[i] = updateSkin(champion, skins[i]);
     await Promise.all(skins);
